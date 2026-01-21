@@ -5,7 +5,7 @@ body {
     min-height: 100vh;
 }
 
-/* 可选背景样式 - 你可以在这里更换图片链接来切换背景 */
+/* 可选背景样式 */
 .bg-option-1 {
     background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4') center/cover no-repeat;
 }
@@ -13,31 +13,50 @@ body {
     background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba') center/cover no-repeat;
 }
 
-/* 导入“晃动下雪”特效的样式 */
+/* 控制面板样式 */
+.controls {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+}
+.controls button {
+    margin: 5px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background: #4CAF50;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* 下雪效果样式 */
 .snowflake {
     position: absolute;
-    width: 10px;
-    height: 10px;
     background: white;
     border-radius: 50%;
     pointer-events: none;
     opacity: 0.8;
 }
 
-/* 导入“拉开窗帘”效果的样式 */
+/* 核心修复：拉开窗帘效果区域样式 */
 :root {
-    --minh: 100vh; /* 区域高度 */
-    --color-light: wheat; /* 光（浅色） */
-    --color-dark: midnightblue; /* 窗帘（深色） */
+    --minh: 100vh;
+    --color-light: wheat;
+    --color-dark: midnightblue;
 }
+/* 关键修改：让容器和伪元素不拦截事件 */
 .curtain {
     background-image: linear-gradient(to bottom, var(--color-dark) 50%, var(--color-light) 50%);
     position: relative;
+    pointer-events: none; /* 容器不拦截事件 */
 }
 .curtain::after {
     content: "";
     display: block;
     min-height: var(--minh);
+    pointer-events: none; /* 伪元素也不拦截事件 */
 }
 .invert {
     position: sticky;
@@ -47,16 +66,22 @@ body {
     align-items: center;
     justify-content: center;
     min-height: var(--minh);
+    pointer-events: none; /* 父容器不拦截事件 */
 }
+/* 最关键修复：只有文字本身可点击 */
 .editable-text {
     color: var(--color-light);
     font-size: 2.5em;
     font-weight: bold;
     padding: 20px;
-    /* 使文字可编辑 */
     background: transparent;
     border: 2px dashed rgba(255, 255, 255, 0.5);
     border-radius: 10px;
     outline: none;
     cursor: text;
+    pointer-events: auto; /* 唯独这个元素接收点击 */
+    position: relative;
+    z-index: 10; /* 确保在最上层 */
 }
+.editable-text:focus {
+    border-color: #4CAF
