@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
@@ -6,10 +6,32 @@
     <title>我的特效网站</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <h1>欢迎来到我的网站！</h1>
-    <p>这个页面可以晃动下雪，还可以拉开窗帘。</p>
-    <!-- 后续的效果代码会添加在这里 -->
+<!-- 为body添加一个默认背景类，通过修改这个类名可以切换背景 -->
+<body class="bg-option-1">
+    <div class="controls">
+        <h2 class="editable" id="mainTitle">欢迎来到我的动态网站！</h2>
+        <p class="editable" id="subTitle">晃动你的手机，开始下雪吧！</p>
+        <div>
+            <button onclick="document.body.className='bg-option-1'">切换背景1: 雪山</button>
+            <button onclick="document.body.className='bg-option-2'">切换背景2: 星空</button>
+            <button onclick="startSnowfall()">开始下雪</button>
+            <button onclick="stopSnowfall()">停止下雪</button>
+        </div>
+    </div>
+
+    <!-- 拉开窗帘效果区域 (基于[citation:3]效果) -->
+    <div class="curtain">
+        <div class="invert">
+            <div class="editable-text" id="curtainText">在这里写下你的灵感...<br>(点击直接编辑)</div>
+        </div>
+    </div>
+
+    <!-- 可编辑的普通内容区域 -->
+    <div class="content">
+        <h3 class="editable" id="content1">这个区域的所有文字也是可以点击编辑的。</h3>
+        <p class="editable" id="content2">编辑后，即使关闭浏览器，下次打开时内容也会保留。</p>
+    </div>
+
     <script src="js/script.js"></script>
 </body>
 </html>
