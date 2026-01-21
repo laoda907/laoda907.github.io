@@ -1,0 +1,62 @@
+/* 基础样式 */
+body {
+    margin: 0;
+    font-family: sans-serif;
+    min-height: 100vh;
+}
+
+/* 可选背景样式 - 你可以在这里更换图片链接来切换背景 */
+.bg-option-1 {
+    background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4') center/cover no-repeat;
+}
+.bg-option-2 {
+    background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba') center/cover no-repeat;
+}
+
+/* 导入“晃动下雪”特效的样式 */
+.snowflake {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* 导入“拉开窗帘”效果的样式 */
+:root {
+    --minh: 100vh; /* 区域高度 */
+    --color-light: wheat; /* 光（浅色） */
+    --color-dark: midnightblue; /* 窗帘（深色） */
+}
+.curtain {
+    background-image: linear-gradient(to bottom, var(--color-dark) 50%, var(--color-light) 50%);
+    position: relative;
+}
+.curtain::after {
+    content: "";
+    display: block;
+    min-height: var(--minh);
+}
+.invert {
+    position: sticky;
+    top: 20px;
+    mix-blend-mode: difference;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--minh);
+}
+.editable-text {
+    color: var(--color-light);
+    font-size: 2.5em;
+    font-weight: bold;
+    padding: 20px;
+    /* 使文字可编辑 */
+    background: transparent;
+    border: 2px dashed rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    outline: none;
+    cursor: text;
+}
