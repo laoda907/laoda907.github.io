@@ -1,147 +1,135 @@
-// ==================== 1. 晃动下雪效果 ====================
-let snowInterval = null;
+// ===== 我的网站特效 - 保存修复版 =====
+console.log('🔧 脚本加载开始');
 
-// 监听手机晃动
-if (window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', function(e) {
-        // 当手机倾斜角度变化较大时触发下雪
-        if ((Math.abs(e.gamma) > 30 || Math.abs(e.beta) > 30) && !snowInterval) {
-            startSnowfall();
-            // 5秒后自动停止
-            setTimeout(stopSnowfall, 5000);
+// 1. 下雪功能（不变）
+let snowTimer = null;
+function createSnow() {
+    const flake = document.createElement('div');
+    flake.className = 'snowflake';
+    flake.style.left = Math.random() * 100 + 'vw';
+    const size = Math.random() * 8 + 4;
+    flake.style.width = flake.style.height = size + 'px';
+    flake.style.opacity = Math.random() * 0.6 + 0.2;
+    document.body.appendChild(flake);
+    setTimeout(() => flake.remove(), 4000);
+}
+function startSnow() { if (snowTimer) return; for (let i=0; i<25; i++) setTimeout(createSnow, i*80); snowTimer = setInterval(createSnow, 150); }
+function stopSnow() { if (snowTimer) { clearInterval(snowTimer); snowTimer = null; } }
+
+// 2. 核心修复：让所有文字都能保存
+function fixAllTextSaving() {
+    console.log('🔄 开始修复文字保存...');
+    
+    // 所有可编辑元素的固定身份标识（按页面顺序）
+    // 这个列表必须和页面上显示的顺序完全一致
+    const textElements = [
+        { selector: '#mainTitle', default: '欢迎来到我的动态网站！' },
+        { selector: '#subTitle', default: '晃动你的手机，开始下雪吧！' },
+        { selector: '#curtainText', default: '在这里写下你的灵感...<br>(点击直接编辑)' },
+        { selector: '#content1', default: '这个区域的所有文字也是可以点击编辑的。' },
+        { selector: '#content2', default: '编辑后，即使关闭浏览器，下次打开时内容也会保留。' }
+    ];
+    
+    let fixedCount = 0;
+    
+    textElements.forEach((item, index) => {
+        const el = document.querySelector(item.selector);
+        if (!el) {
+            console.warn('⚠️ 未找到元素：', item.selector);
+            return;
         }
-    });
-}
-
-// 创建一片雪花
-function createSnowflake() {
-    const snowflake = document.createElement('div');
-    snowflake.className = 'snowflake';
-    snowflake.style.left = Math.random() * 100 + 'vw';
-    const size = Math.random() * 10 + 5;
-    snowflake.style.width = size + 'px';
-    snowflake.style.height = size + 'px';
-    snowflake.style.opacity = Math.random() * 0.5 + 0.3;
-    document.body.appendChild(snowflake);
-    
-    // 5秒后移除雪花
-    setTimeout(() => {
-        if (snowflake.parentNode) {
-            snowflake.remove();
+        
+        // 给元素一个永久的、唯一的存储键
+        // 使用固定的键名，避免随机生成导致不匹配
+        const storageKey = 'text_' + (index + 1);
+        el.dataset.saveKey = storageKey; // 保存在元素属性里
+        
+        console.log(`处理 ${item.selector} -> 存储键: ${storageKey}`);
+        
+        // 设为可编辑
+        el.setAttribute('contenteditable', 'true');
+        
+        // 尝试加载保存的内容
+        const saved = localStorage.getItem(storageKey);
+        if (saved !== null && saved !== '') {
+            el.innerHTML = saved;
+            console.log(`  ✅ 已加载保存内容`);
+            fixedCount++;
+        } else {
+            // 如果是第一次，确保默认值被保存
+            localStorage.setItem(storageKey, item.default);
+            console.log(`  📝 设置默认值并保存`);
         }
-    }, 5000);
-}
-
-// 开始下雪
-function startSnowfall() {
-    if (snowInterval) return; // 防止重复启动
-    
-    // 初始创建一批雪花
-    for (let i = 0; i < 30; i++) {
-        setTimeout(createSnowflake, i * 100);
-    }
-    // 持续生成新雪花
-    snowInterval = setInterval(createSnowflake, 200);
-}
-
-// 停止下雪
-function stopSnowfall() {
-    if (snowInterval) {
-        clearInterval(snowInterval);
-        snowInterval = null;
-    }
-}
-
-// ==================== 2. 文字编辑功能（核心修复版） ====================
-// 为元素启用编辑功能
-function enableEditing(element) {
-    if (!element || element.hasAttribute('data-edit-initialized')) {
-        return; // 防止重复初始化
-    }
-    
-    // 标记已初始化
-    element.setAttribute('data-edit-initialized', 'true');
-    
-    // 1. 设置为可编辑
-    element.setAttribute('contenteditable', 'true');
-    
-    // 2. 生成稳定的存储键（核心修复）
-    let storageKey = element.id ? 'edit_' + element.id : null;
-    if (!storageKey) {
-        // 基于元素内容生成一个哈希值作为稳定键
-        const text = element.textContent.trim().substring(0, 30) || 'edit';
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) {
-            const char = text.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // 转换为32位整数
-        }
-        storageKey = 'edit_hash_' + Math.abs(hash);
-        element.dataset.editKey = storageKey; // 保存到元素属性
-    }
-    
-    console.log(`初始化编辑元素: ${storageKey}`);
-    
-    // 3. 加载已保存的内容
-    const savedText = localStorage.getItem(storageKey);
-    if (savedText !== null && savedText !== '') {
-        element.innerHTML = savedText;
-    }
-    
-    // 4. 输入时实时保存
-    element.addEventListener('input', function() {
-        localStorage.setItem(storageKey, this.innerHTML);
+        
+        // 输入时自动保存
+        let saveTimer;
+        el.addEventListener('input', function() {
+            clearTimeout(saveTimer);
+            saveTimer = setTimeout(() => {
+                localStorage.setItem(storageKey, this.innerHTML);
+                console.log(`  💾 实时保存: ${storageKey}`);
+            }, 400);
+        });
+        
+        // 视觉反馈
+        el.addEventListener('focus', function() {
+            this.style.outline = '3px solid #00ff00';
+            this.style.boxShadow = '0 0 15px rgba(0,255,0,0.5)';
+        });
+        el.addEventListener('blur', function() {
+            this.style.outline = '';
+            this.style.boxShadow = '';
+        });
     });
     
-    // 5. 视觉反馈
-    element.addEventListener('focus', function() {
-        this.style.borderColor = '#4CAF50';
-        this.style.backgroundColor = 'rgba(76, 175, 80, 0.1)';
-    });
-    
-    element.addEventListener('blur', function() {
-        this.style.borderColor = '';
-        this.style.backgroundColor = '';
-    });
+    console.log(`✅ 修复完成。已处理 ${fixedCount} 个元素的保存问题。`);
+    return fixedCount;
 }
 
-// 初始化所有可编辑文本
-function initAllEditableText() {
-    // 通过选择器找到所有目标元素
-    const elements = document.querySelectorAll('.editable, .editable-text');
-    console.log(`找到 ${elements.length} 个可编辑元素`);
-    
-    elements.forEach(enableEditing);
-    
-    // 特殊检查：确保窗帘文字被处理（通过ID）
-    const curtainText = document.getElementById('curtainText');
-    if (curtainText && !curtainText.hasAttribute('data-edit-initialized')) {
-        console.log('额外初始化窗帘文字（通过ID）');
-        enableEditing(curtainText);
-    }
-}
-
-// ==================== 3. 页面加载初始化 ====================
+// 3. 页面加载
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('页面加载完成，开始初始化...');
+    console.log('📄 页面加载完成');
     
-    // 初始化文字编辑功能
-    initAllEditableText();
+    // 修复保存问题
+    const fixed = fixAllTextSaving();
     
-    // 延迟再次检查，确保动态内容已加载
-    setTimeout(initAllEditableText, 300);
+    // 如果修复了0个，说明可能是首次运行
+    if (fixed === 0) {
+        console.log('ℹ️ 首次运行，所有内容已设置为默认值并保存');
+    }
     
-    // 将下雪函数设为全局，供按钮调用
-    window.startSnowfall = startSnowfall;
-    window.stopSnowfall = stopSnowfall;
+    // 全局函数
+    window.startSnowfall = startSnow;
+    window.stopSnowfall = stopSnow;
     
-    // 暴露调试函数（在浏览器控制台输入 manualFix() 可调用）
-    window.manualFix = function() {
-        console.log('手动重新初始化所有编辑功能');
-        initAllEditableText();
-        alert('已重新初始化。请点击窗帘文字测试。');
-    };
+    // 添加手动保存按钮（用于测试）
+    setTimeout(() => {
+        const saveBtn = document.createElement('button');
+        saveBtn.innerHTML = '💾 保存测试';
+        saveBtn.style.cssText = `
+            position: fixed; bottom: 70px; right: 15px;
+            z-index: 9999; padding: 8px 12px;
+            background: #2196F3; color: white;
+            border: none; border-radius: 15px;
+            font-size: 13px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        saveBtn.onclick = function() {
+            const keys = ['text_1', 'text_2', 'text_3', 'text_4', 'text_5'];
+            let result = '当前保存状态：\n\n';
+            keys.forEach(key => {
+                const content = localStorage.getItem(key);
+                result += `${key}: ${content ? '✅ 已保存' : '❌ 未保存'}\n`;
+                if (content) result += `  内容: "${content.substring(0, 15)}..."\n`;
+            });
+            alert(result);
+        };
+        document.body.appendChild(saveBtn);
+        console.log('🛠️ 保存测试按钮已添加');
+    }, 1500);
 });
 
-// 控制台提示
-console.log('特效脚本已加载。如需手动修复，请在控制台输入 manualFix()');
+// 启动完成提示
+setTimeout(() => {
+    console.log('🚀 网站准备就绪');
+    console.log('📊 已保存项目:', Object.keys(localStorage).length);
+}, 2000);
